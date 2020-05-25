@@ -13,8 +13,6 @@ type Preferences = {
         ui :: UiPreferences
     }
 
-foreign import getDataDir :: String
-foreign import getDataDirFileName :: String -> String
 foreign import getPreferences :: Unit -> Preferences
 
 foreign import setPreferenceString :: String -> String -> Effect Unit
