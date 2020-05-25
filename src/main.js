@@ -213,6 +213,11 @@ function openPreferences() {
   preferences.show();
 }
 
+function exit() {
+  const win = BrowserWindow.getFocusedWindow();
+  win.close()
+}
+
 function windowSend(name, opts) {
   const win = BrowserWindow.getFocusedWindow();
   win.webContents.send(name, opts);
@@ -282,6 +287,9 @@ function setMenuQuick(aWindowIsOpen=true) {
       , { label: 'Preferences'
         , accelerator: 'CmdOrCtrl+P'
         , click: () => openPreferences()
+        },
+        { label: 'Exit'
+        , click: () => exit()
         }
       ]
     }
