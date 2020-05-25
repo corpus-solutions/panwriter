@@ -6,6 +6,7 @@ import Effect (Effect)
 import Electron.IpcRenderer as Ipc
 import Panwriter.Document (updateDocument)
 import Panwriter.File (initFile, setWindowDirty)
+import Panwriter.Settings (getAppInitialState, changeSplitViewPref, changePaginatedPref)
 import Panwriter.Formatter as Formatter
 import Panwriter.Preview (preview)
 import Panwriter.Toolbar (ViewSplit(..), toolbar)
@@ -35,16 +36,10 @@ renderPreview state =
   then clearPreview
   else renderMd state.paginated
 
-
 app :: Props -> JSX
 app = make component
   { initialState:
-      { text: ""
-      , fileName: "Untitled"
-      , fileDirty: false
-      , split: OnlyEditor
-      , paginated: false
-      }
+      getAppInitialState unit
 
   , didMount: \self -> do
       let splitChange = send self <<< SplitChange
@@ -58,24 +53,28 @@ app = make component
       Ipc.on "addBold"          $ CodeMirror.replaceSelection Formatter.bold
       Ipc.on "addItalic"        $ CodeMirror.replaceSelection Formatter.italic
       Ipc.on "addStrikethrough" $ CodeMirror.replaceSelection Formatter.strikethrough
+      Ipc.on "previewDivLoaded" $ renderPreview self.state
       Ipc.on "addMetadataStyle" $ do
         Formatter.addStyle >>= send self <<< TextChange
         send self $ Paginate true
-  
+
   , update: \{state} action -> case action of
       SplitChange sp      -> UpdateAndSideEffects state {split = sp}
                                \self -> do
+                                 changeSplitViewPref self.state.split
                                  renderPreview self.state
                                  CodeMirror.refresh
       Paginate p          -> UpdateAndSideEffects state {paginated = p}
-                               \self -> renderMd p
+                               \self -> do
+                                  changePaginatedPref p
+                                  renderMd p
       TextChange txt      -> UpdateAndSideEffects state {text = txt, fileDirty = true}
                                \self -> do
                                  setWindowDirty
                                  updateDocument txt
                                  renderPreview self.state
       FileSaved name      -> Update state {fileName = name, fileDirty = false}
-      FileLoaded name txt -> UpdateAndSideEffects state 
+      FileLoaded name txt -> UpdateAndSideEffects state
                                { text      = txt
                                , fileName  = name
                                , fileDirty = false
@@ -126,7 +125,7 @@ app = make component
         , preview
             { paginated: state.paginated
             , printPreview: printPreview
-            }  
+            }
         ]
     }
   }

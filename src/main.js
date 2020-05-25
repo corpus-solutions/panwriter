@@ -31,6 +31,10 @@ const preferences = new ElectronPreferences({
    'defaults': {
     'main': {
       'userDataDir': defaultDataDir(app)
+    },
+    'ui' : {
+      'splitState': 'OnlyEditor',
+      'paginated' : false
     }
    },
    /**
@@ -64,6 +68,10 @@ const preferences = new ElectronPreferences({
 ipcMain.on('setPreference', (event, key, value) => {
   preferences.value(key, value);
   event.returnValue = null;
+});
+
+ipcMain.on('previewDivLoaded', (event) => {
+  event.sender.send('previewDivLoaded');
 });
 
 function createWindow(filePath, toImport=false, wasCreatedOnStartup=false) {
