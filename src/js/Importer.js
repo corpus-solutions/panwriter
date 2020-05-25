@@ -33,7 +33,7 @@ module.exports.importFile = function(inputPath, cb) {
   pandoc.stderr.on('data', function(data) {
     errout.push(data);
   });
-  
+
   pandoc.on('close', function(exitCode) {
     const success = exitCode === 0
         , toMsg = "Called: " + cmdDebug
@@ -41,7 +41,7 @@ module.exports.importFile = function(inputPath, cb) {
     if (success) {
       cb( stdout.join('') );
     } else {
-      remote.dialog.showMessageBox(win, {
+      remote.dialog.showMessageBoxSync(win, {
         type:    'error'
       , message: 'Failed to import'
       , detail:  [toMsg, ''].concat( errout.join('') ).join('\n')

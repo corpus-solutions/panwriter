@@ -30,7 +30,7 @@ function createWindow(filePath, toImport=false, wasCreatedOnStartup=false) {
       , preload: __dirname + '/js/rendererPreload.js'
       }
     });
-  
+
   win.wasCreatedOnStartup = wasCreatedOnStartup;
   win.fileIsDirty = false;
   win.filePathToLoad = filePath;
@@ -55,7 +55,7 @@ function createWindow(filePath, toImport=false, wasCreatedOnStartup=false) {
     // see https://github.com/electron/electron/blob/master/docs/api/browser-window.md#event-close
     // and https://github.com/electron/electron/issues/9966
     if (win.fileIsDirty) {
-      const selected = dialog.showMessageBox(win, {
+      const selected = dialog.showMessageBoxSync(win, {
           type: "question"
         , message: "This document has unsaved changes."
         , buttons: ["Save", "Cancel", "Don't Save"]
@@ -154,7 +154,7 @@ function openDialog(toImport=false) {
   const formats = toImport ? [] : [
             { name: 'Markdown', extensions: mdExtensions }
           ]
-      , fileNames = dialog.showOpenDialog({
+      , fileNames = dialog.showOpenDialogSync({
           filters: formats
         , buttonLabel: toImport ? 'Import' : undefined
         })

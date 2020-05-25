@@ -56,7 +56,7 @@ ipcRenderer.on('fileSave', function(_event, opts) {
   var filePath = Document.getPath();
   if (filePath === undefined || opts.saveAsNewFile) {
     var win  = remote.getCurrentWindow();
-    filePath = remote.dialog.showSaveDialog(win, {
+    filePath = remote.dialog.showSaveDialogSync(win, {
         defaultPath: 'Untitled.md'
       , filters: [
           { name: 'Markdown', extensions: ['md', 'txt', 'markdown'] }

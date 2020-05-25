@@ -25,7 +25,7 @@ ipcRenderer.on('fileExport', function() {
     defaultPath   = path.basename(inputPath, path.extname(inputPath))
   }
 
-  const outputPath = remote.dialog.showSaveDialog(win, {
+  const outputPath = remote.dialog.showSaveDialogSync(win, {
     defaultPath: defaultPath
   , buttonLabel: 'Export'
   , filters: exportFormats()
@@ -81,7 +81,7 @@ async function fileExport(exp) {
     const success = exitCode === 0
         , toMsg = "Called: " + cmdDebug
         ;
-    remote.dialog.showMessageBox(win, {
+    remote.dialog.showMessageBoxSync(win, {
       type:    success ? 'info' : 'error'
     , message: success ? 'Success!' : 'Failed to export'
     , detail:  [toMsg, ''].concat( errout.join('') ).join('\n')
