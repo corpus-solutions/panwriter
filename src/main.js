@@ -5,10 +5,12 @@
 
 
 // Modules to control application life and create native browser window
-const {app, dialog, BrowserWindow, Menu} = require('electron')
+const {app, dialog, BrowserWindow, Menu, ipcMain} = require('electron')
     , {autoUpdater} = require("electron-updater")
     , path = require('path')
     , fs = require('fs')
+    , ElectronPreferences = require('electron-preferences')
+    , defaultDataDir = require('./Panwriter/Settings').defaultDataDir
     ;
 
 // Keep a global reference of the windows, if you don't, the windows will
@@ -17,6 +19,52 @@ const windows = []
     , mdExtensions = ['md', 'txt', 'markdown']
     ;
 let recentFiles = [];
+
+const preferences = new ElectronPreferences({
+   /**
+     * Where should preferences be saved?
+   */
+  'dataStore': path.resolve(app.getPath('userData'), 'preferences.json'),
+   /**
+     * Default values.
+   */
+   'defaults': {
+    'main': {
+      'userDataDir': defaultDataDir(app)
+    }
+   },
+   /**
+     * The preferences window is divided into sections. Each section has a label, an icon, and one or
+     * more fields associated with it. Each section should also be given a unique ID.
+     */
+   'sections': [
+    {
+      'id': 'main',
+      'label': 'Settings',
+      'icon': 'folder-15',
+      'form': {
+        'groups': [
+          {
+              'label': 'Directories',
+              'fields': [
+                  {
+                      'label': 'User data directory',
+                      'key': 'userDataDir',
+                      'type': 'directory',
+                      'help': 'PanWriter user directory.'
+                  }
+              ]
+          }
+        ]
+      }
+    }
+   ]
+})
+
+ipcMain.on('setPreference', (event, key, value) => {
+  preferences.value(key, value);
+  event.returnValue = null;
+});
 
 function createWindow(filePath, toImport=false, wasCreatedOnStartup=false) {
   const win = new BrowserWindow({
@@ -30,7 +78,6 @@ function createWindow(filePath, toImport=false, wasCreatedOnStartup=false) {
       , preload: __dirname + '/js/rendererPreload.js'
       }
     });
-
   win.wasCreatedOnStartup = wasCreatedOnStartup;
   win.fileIsDirty = false;
   win.filePathToLoad = filePath;
@@ -164,6 +211,11 @@ function openDialog(toImport=false) {
   }
 }
 
+function openPreferences() {
+  // Show the preferences window on demand.
+  preferences.show();
+}
+
 function windowSend(name, opts) {
   const win = BrowserWindow.getFocusedWindow();
   win.webContents.send(name, opts);
@@ -228,6 +280,11 @@ function setMenuQuick(aWindowIsOpen=true) {
       , { label: 'Import…'
         , accelerator: 'CmdOrCtrl+I'
         , click: () => openDialog(true)
+        }
+      , {type: 'separator'}
+      , { label: 'Preferences'
+        , accelerator: 'CmdOrCtrl+P'
+        , click: () => openPreferences()
         }
       ]
     }
