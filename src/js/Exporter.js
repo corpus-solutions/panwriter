@@ -8,7 +8,7 @@ const ipcRenderer = require('electron').ipcRenderer
     , promisify   = require('util').promisify
     , jsYaml      = require('js-yaml')
     , Document    = require('./Document')
-    , getDataDirFileName  = require('../Panwriter/Settings').getDataDirFileName
+    , getTypeRelativeFileName  = require('../Panwriter/Settings').getTypeRelativeFileName
     ;
 
 var previousExportConfig;
@@ -53,7 +53,8 @@ ipcRenderer.on('fileExportLikePrevious', function() {
 async function fileExport(exp) {
   // simplified version of what I did in https://github.com/mb21/panrun
   const docMeta = Document.getMeta()
-      , [extMeta, fileArg] = await defaultMeta(docMeta.type)
+      , filePath = Document.getFilePath()
+      , [extMeta, fileArg] = await defaultMeta(filePath, docMeta.type)
       , out = mergeAndValidate(docMeta, extMeta, exp.outputPath)
       ;
   const win  = remote.getCurrentWindow()
@@ -123,9 +124,9 @@ function mergeAndValidate(docMeta, extMeta, outputPath) {
 }
 
 // reads the right default yaml file
-async function defaultMeta(type) {
+async function defaultMeta(currentFilePath, type) {
   try {
-    const [str, fileName] = await readDataDirFile(type, '.yaml');
+    const [str, fileName] = await readDocumentTypeFile(currentFilePath, type, '.yaml');
     return [ jsYaml.safeLoad(str) || {}, ['--metadata-file', fileName] ]
   } catch(e) {
     console.warn("Error loading or parsing YAML file." + e.message);
@@ -133,9 +134,9 @@ async function defaultMeta(type) {
   }
 }
 
-// reads file from data directory, throws exception when not found
-async function readDataDirFile(type, suffix) {
-  const fileName = getDataDirFileName(type, suffix);
+// reads file from data directory, or relative to current file, throws exception when not found
+async function readDocumentTypeFile(filename, type, suffix) {
+  const fileName = getTypeRelativeFileName(filename, type, suffix);
   const str = await promisify(fs.readFile)(fileName, 'utf8');
   return [str, fileName]
 }

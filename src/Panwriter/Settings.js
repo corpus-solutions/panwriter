@@ -28,6 +28,18 @@ function getDataDirFileName(type, suffix) {
     return dataDir + type + suffix;
 }
 
+function getTypeRelativeFileName(currentFile, type, suffix) {
+    if (typeof type !== 'string') {
+        type = 'default'
+    }
+    if(type.startsWith('.')) { //relative paths are resolved against current file path
+        const dirname = path.dirname(currentFile)
+        return dirname + "/" + type + suffix;
+    } else {
+        return getDataDirFileName(type, suffix);
+    }
+}
+
 function getPreferences() {
     return ipcRenderer.sendSync('getPreferences');
 }
@@ -47,9 +59,8 @@ function setPreferenceExp(key) {
 module.exports.defaultDataDir = defaultDataDir;
 module.exports.getDataDir = getDataDir;
 module.exports.getDataDirFileName = getDataDirFileName;
+module.exports.getTypeRelativeFileName = getTypeRelativeFileName;
 
-exports.getDataDir = getDataDir;
-exports.getDataDirFileName = getDataDirFileName;
 exports.getPreferences = getPreferences;
 exports.setPreferenceString = setPreferenceExp
 exports.setPreferenceBoolean = setPreferenceExp

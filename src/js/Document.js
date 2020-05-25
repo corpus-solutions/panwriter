@@ -6,7 +6,7 @@
 var { ipcRenderer, remote }  = require('electron')
   , fs              = require('fs')
   , promisify          = require('util').promisify
-  , getDataDirFileName = require('../Panwriter/Settings').getDataDirFileName
+  , getTypeRelativeFileName = require('../Panwriter/Settings').getTypeRelativeFileName
   ;
 
 var md       = ""
@@ -64,6 +64,10 @@ module.exports.getMeta = function() {
   return meta;
 }
 
+module.exports.getFilePath = function() {
+  return filePath;
+}
+
 module.exports.getHtml = function() {
   return html;
 }
@@ -103,7 +107,7 @@ module.exports.getCss = async function() {
   if (meta.type !== docType) {
     // cache css
     docType = meta.type;
-    const fileName = getDataDirFileName(docType, '.css')
+    const fileName = getTypeRelativeFileName(filePath, docType, '.css')
     try {
         await promisify(fs.access)(fileName)
         link = fileName;
