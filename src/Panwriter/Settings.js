@@ -36,6 +36,20 @@ function setPreference(key, value) {
     return ipcRenderer.sendSync('setPreference', key, value)
 }
 
+function setPreferenceExp(key) {
+    return function(value) {
+        return function() {
+            setPreference(key, value);
+        };
+    }
+};
+
 module.exports.defaultDataDir = defaultDataDir;
 module.exports.getDataDir = getDataDir;
 module.exports.getDataDirFileName = getDataDirFileName;
+
+exports.getDataDir = getDataDir;
+exports.getDataDirFileName = getDataDirFileName;
+exports.getPreferences = getPreferences;
+exports.setPreferenceString = setPreferenceExp
+exports.setPreferenceBoolean = setPreferenceExp

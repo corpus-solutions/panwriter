@@ -13,6 +13,12 @@ import Electron.CurrentWindow as CurrentWindow
 data ViewSplit = OnlyEditor | Split | OnlyPreview
 derive instance eqViewSplit :: Eq ViewSplit
 
+viewSplit :: String -> ViewSplit
+viewSplit "OnlyEditor" = OnlyEditor
+viewSplit "Split" = Split
+viewSplit "OnlyPreview" = OnlyPreview
+viewSplit _ = OnlyEditor
+
 component :: Component Props
 component = createComponent "Toolbar"
 
@@ -57,7 +63,7 @@ toolbar = make component
                     }
                 ]
               }
-              
+
           splitBtns props =
             R.div
               { className: "btngroup"

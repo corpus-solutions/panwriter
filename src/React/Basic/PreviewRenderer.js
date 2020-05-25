@@ -203,4 +203,5 @@ async function render() {
 
 document.addEventListener("DOMContentLoaded", function() {
   previewDiv = document.querySelector('.previewDiv');
+  ipcRenderer.send('previewDivLoaded');
 });
