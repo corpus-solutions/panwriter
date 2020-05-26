@@ -3,12 +3,14 @@
 // This file is currently the only one that runs in the main process
 // see https://electronjs.org/docs/tutorial/application-architecture
 
-
 // Modules to control application life and create native browser window
-const {app, dialog, BrowserWindow, Menu} = require('electron')
+const {app, dialog, BrowserWindow, Menu, ipcMain} = require('electron')
     , {autoUpdater} = require("electron-updater")
     , path = require('path')
     , fs = require('fs')
+    , PanWriterPreferences = require('./js/PanWriterPreferences')
+    , Settings = require('./Panwriter/Settings')
+    , defaultDataDir = Settings.defaultDataDir
     ;
 
 // Keep a global reference of the windows, if you don't, the windows will
@@ -17,6 +19,41 @@ const windows = []
     , mdExtensions = ['md', 'txt', 'markdown']
     ;
 let recentFiles = [];
+
+const preferences = new PanWriterPreferences({
+  'configFilePath': path.resolve(app.getPath('userData'), 'preferences.json'),
+   'defaults': {
+    'main': {
+      'userDataDir': defaultDataDir(app)
+    }
+   },
+   'sections': [
+    {
+      'id': 'main',
+      'label': 'Main',
+      'form': {
+        'groups': [
+          {
+              'label': 'Directories',
+              'fields': [
+                  {
+                      'label': 'User data directory',
+                      'key': 'userDataDir',
+                      'type': 'directory',
+                      'help': 'PanWriter user directory'
+                  }
+              ]
+          }
+        ]
+      }
+    }
+   ]
+})
+
+ipcMain.on('setPreference', (event, key, value) => {
+  preferences.value(key, value);
+  event.returnValue = null;
+});
 
 function createWindow(filePath, toImport=false, wasCreatedOnStartup=false) {
   const win = new BrowserWindow({
@@ -30,7 +67,6 @@ function createWindow(filePath, toImport=false, wasCreatedOnStartup=false) {
       , preload: __dirname + '/js/rendererPreload.js'
       }
     });
-
   win.wasCreatedOnStartup = wasCreatedOnStartup;
   win.fileIsDirty = false;
   win.filePathToLoad = filePath;
@@ -164,6 +200,11 @@ function openDialog(toImport=false) {
   }
 }
 
+function openPreferences() {
+  // Show the preferences window on demand.
+  preferences.show();
+}
+
 function windowSend(name, opts) {
   const win = BrowserWindow.getFocusedWindow();
   win.webContents.send(name, opts);
@@ -228,6 +269,11 @@ function setMenuQuick(aWindowIsOpen=true) {
       , { label: 'Import…'
         , accelerator: 'CmdOrCtrl+I'
         , click: () => openDialog(true)
+        }
+      , {type: 'separator'}
+      , { label: 'Preferences'
+        , accelerator: 'CmdOrCtrl+P'
+        , click: () => openPreferences()
         }
       ]
     }

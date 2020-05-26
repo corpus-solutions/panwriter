@@ -3,10 +3,10 @@
 // Singleton Document,
 // exists exactly once in each window renderer process.
 
-var remote          = require('electron').remote
+var { ipcRenderer, remote }  = require('electron')
   , fs              = require('fs')
   , promisify          = require('util').promisify
-  , getDataDirFileName = require('./Exporter').getDataDirFileName
+  , getDataDirFileName = require('../Panwriter/Settings').getDataDirFileName
   ;
 
 var md       = ""
@@ -90,6 +90,15 @@ var defaultStaticCssLink = remote.app.getAppPath() + '/static/default.css'
   , link
   , docType = null
   ;
+
+// Listen to the `preferencesUpdated` event to be notified when preferences are changed.
+ipcRenderer.on('preferencesUpdated', (e, preferences, oldPreferences) => {
+  //clear css cache
+  if(oldPreferences['userDataDir'] != preferences['userDataDir']) {
+    docType = null
+  }
+});
+
 module.exports.getCss = async function() {
   var linkIsChanged = false;
   if (meta.type !== docType) {

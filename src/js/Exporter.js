@@ -8,11 +8,10 @@ const ipcRenderer = require('electron').ipcRenderer
     , promisify   = require('util').promisify
     , jsYaml      = require('js-yaml')
     , Document    = require('./Document')
+    , getDataDirFileName  = require('../Panwriter/Settings').getDataDirFileName
     ;
 
 var previousExportConfig;
-
-module.exports.getDataDirFileName = getDataDirFileName;
 
 ipcRenderer.on('fileExport', function() {
   const win = remote.getCurrentWindow()
@@ -49,7 +48,6 @@ ipcRenderer.on('fileExportLikePrevious', function() {
            "Use 'File → Export' first." );
   }
 });
-
 
 // Calls pandoc, takes export settings object
 async function fileExport(exp) {
@@ -140,15 +138,6 @@ async function readDataDirFile(type, suffix) {
   const fileName = getDataDirFileName(type, suffix);
   const str = await promisify(fs.readFile)(fileName, 'utf8');
   return [str, fileName]
-}
-
-function getDataDirFileName(type, suffix) {
-  if (typeof type !== 'string') {
-    type = 'default'
-  }
-  const dataDir = [remote.app.getPath('appData'), 'PanWriterUserData', '']
-                    .join(path.sep)
-  return dataDir + type + suffix;
 }
 
 // constructs commandline arguments from object
