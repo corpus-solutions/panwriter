@@ -30,6 +30,7 @@ module.exports.setDoc = function(mdStr, yamlStr, bodyMdStr, metaObj) {
   yaml   = yamlStr;
   bodyMd = bodyMdStr;
   meta   = metaObj;
+  ipcRenderer.send('documentUpdated', filePath, meta);
 }
 
 module.exports.setHtml = function(htmlStr) {
@@ -126,7 +127,6 @@ module.exports.getCss = async function() {
 module.exports.getPath = function() {
   return filePath;
 }
-
 
 /*
  * Private

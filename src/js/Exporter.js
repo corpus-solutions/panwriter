@@ -3,17 +3,32 @@
 const ipcRenderer = require('electron').ipcRenderer
     , remote      = require('electron').remote
     , spawn       = require('child_process').spawn
-    , fs          = require('fs')
     , path        = require('path')
-    , promisify   = require('util').promisify
-    , jsYaml      = require('js-yaml')
     , Document    = require('./Document')
-    , Settings = require('../Panwriter/Settings')
-    , getTypeRelativeFileName  = Settings.getTypeRelativeFileName
-    , getPandocExecutable = Settings.getPandocExecutable
+    , defaultMeta = require('./Utils').defaultMeta
+    , getPandocExecutable = require('../Panwriter/Settings').getPandocExecutable
     ;
 
 var previousExportConfig;
+
+ipcRenderer.on('fileExportUsingFormat', function(sender, format) {
+  const win = remote.getCurrentWindow()
+  , spawnOpts = {}
+  , inputPath = Document.getPath()
+
+  if (inputPath !== undefined) {
+    const cwd = path.dirname(inputPath);
+    spawnOpts.cwd = cwd;
+    const outputPath = cwd + '/' + format['output'];
+    let exp = {
+      outputPath: outputPath
+    , spawnOpts: spawnOpts
+    };
+    fileExport(exp).then( () => {
+      previousExportConfig = exp;
+    });
+  }
+});
 
 ipcRenderer.on('fileExport', function() {
   const win = remote.getCurrentWindow()
@@ -123,24 +138,6 @@ function mergeAndValidate(docMeta, extMeta, outputPath) {
   }
 
   return out;
-}
-
-// reads the right default yaml file
-async function defaultMeta(currentFilePath, type) {
-  try {
-    const [str, fileName] = await readDocumentTypeFile(currentFilePath, type, '.yaml');
-    return [ jsYaml.safeLoad(str) || {}, ['--metadata-file', fileName] ]
-  } catch(e) {
-    console.warn("Error loading or parsing YAML file." + e.message);
-    return [ {}, [] ];
-  }
-}
-
-// reads file from data directory, or relative to current file, throws exception when not found
-async function readDocumentTypeFile(filename, type, suffix) {
-  const fileName = getTypeRelativeFileName(filename, type, suffix);
-  const str = await promisify(fs.readFile)(fileName, 'utf8');
-  return [str, fileName]
 }
 
 // constructs commandline arguments from object

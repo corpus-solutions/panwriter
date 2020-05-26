@@ -12,6 +12,7 @@ const {app, dialog, BrowserWindow, Menu, ipcMain} = require('electron')
     , Settings = require('./Panwriter/Settings')
     , defaultDataDir = Settings.defaultDataDir
     , defaultPandocExecutable = Settings.defaultPandocExecutable
+    , getOutputFormats = require('./js/Utils').getOutputFormats
     ;
 
 // Keep a global reference of the windows, if you don't, the windows will
@@ -20,6 +21,7 @@ const windows = []
     , mdExtensions = ['md', 'txt', 'markdown']
     ;
 let recentFiles = [];
+let exportFormats = [];
 
 const preferences = new PanWriterPreferences({
   'configFilePath': path.resolve(app.getPath('userData'), 'preferences.json'),
@@ -69,6 +71,14 @@ ipcMain.on('setPreference', (event, key, value) => {
 
 ipcMain.on('previewDivLoaded', (event) => {
   event.sender.send('previewDivLoaded');
+});
+
+ipcMain.on('documentUpdated', (event, filePath, meta) => {
+  console.log('documentUpdated: '+filePath+", meta: "+meta)
+  getOutputFormats(filePath, meta).then(res => {
+    exportFormats = res;
+    setMenu()
+  })
 });
 
 function createWindow(filePath, toImport=false, wasCreatedOnStartup=false) {
@@ -282,6 +292,16 @@ function setMenuQuick(aWindowIsOpen=true) {
         , click: windowSend.bind(this, 'fileExport')
         , enabled: aWindowIsOpen
         }
+      , { label: 'Export Format'
+        , enabled: exportFormats.length > 0
+        , submenu: exportFormats.map(f => {
+          return {
+            label: f.name
+          , click: windowSend.bind(this, 'fileExportUsingFormat', f)
+          , enabled: aWindowIsOpen
+          }
+        })
+      }
       , { label: 'Export like previous'
         , accelerator: 'CmdOrCtrl+E'
         , click: windowSend.bind(this, 'fileExportLikePrevious')
