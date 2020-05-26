@@ -74,7 +74,6 @@ ipcMain.on('previewDivLoaded', (event) => {
 });
 
 ipcMain.on('documentUpdated', (event, filePath, meta) => {
-  console.log('documentUpdated: '+filePath+", meta: "+meta)
   getOutputFormats(filePath, meta).then(res => {
     exportFormats = res;
     setMenu()
