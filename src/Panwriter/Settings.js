@@ -13,6 +13,37 @@ function defaultDataDir(app) {
     return dataDir
 }
 
+function defaultPandocExecutable() {
+    return 'pandoc';
+}
+
+function getPandocExecutable(currentFile, docMeta, metaFile, extMeta) {
+    if(!docMeta) {
+        docMeta = {};
+    }
+
+    const prefs = ipcRenderer.sendSync('getPreferences');
+    if(docMeta['pandoc']) {
+        const pandocPath = docMeta['pandoc'];
+        if(pandocPath.startsWith('.')) { //relative paths are resolved against current file path
+            const dirname = path.dirname(currentFile)
+            return dirname + "/" + pandocPath;
+        } else {
+            return pandocPath;
+        }
+    } else if(extMeta['pandoc']) {
+        const pandocPath = extMeta['pandoc'];
+        if(pandocPath.startsWith('.')) { //relative paths are resolved against current file path
+            const dirname = path.dirname(metaFile)
+            return dirname + "/" + pandocPath;
+        } else {
+            return pandocPath;
+        }
+    } else {
+        return prefs['main']['pandocPath'] || defaultPandocExecutable();
+    }
+}
+
 function getDataDir(prefs) {
     if(!prefs) {
         prefs = ipcRenderer.sendSync('getPreferences');
@@ -57,6 +88,8 @@ function setPreferenceExp(key) {
 };
 
 module.exports.defaultDataDir = defaultDataDir;
+module.exports.defaultPandocExecutable = defaultPandocExecutable;
+module.exports.getPandocExecutable = getPandocExecutable;
 module.exports.getDataDir = getDataDir;
 module.exports.getDataDirFileName = getDataDirFileName;
 module.exports.getTypeRelativeFileName = getTypeRelativeFileName;

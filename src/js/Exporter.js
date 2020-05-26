@@ -8,7 +8,9 @@ const ipcRenderer = require('electron').ipcRenderer
     , promisify   = require('util').promisify
     , jsYaml      = require('js-yaml')
     , Document    = require('./Document')
-    , getTypeRelativeFileName  = require('../Panwriter/Settings').getTypeRelativeFileName
+    , Settings = require('../Panwriter/Settings')
+    , getTypeRelativeFileName  = Settings.getTypeRelativeFileName
+    , getPandocExecutable = Settings.getPandocExecutable
     ;
 
 var previousExportConfig;
@@ -58,7 +60,7 @@ async function fileExport(exp) {
       , out = mergeAndValidate(docMeta, extMeta, exp.outputPath)
       ;
   const win  = remote.getCurrentWindow()
-      , cmd  = 'pandoc'
+      , cmd  = getPandocExecutable(filePath, docMeta, fileArg[1], extMeta)
       , args = fileArg.concat( toArgs(out) )
       , cmdDebug = cmd + ' ' + args.join(' ')
       ;

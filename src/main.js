@@ -11,6 +11,7 @@ const {app, dialog, BrowserWindow, Menu, ipcMain} = require('electron')
     , PanWriterPreferences = require('./js/PanWriterPreferences')
     , Settings = require('./Panwriter/Settings')
     , defaultDataDir = Settings.defaultDataDir
+    , defaultPandocExecutable = Settings.defaultPandocExecutable
     ;
 
 // Keep a global reference of the windows, if you don't, the windows will
@@ -24,7 +25,8 @@ const preferences = new PanWriterPreferences({
   'configFilePath': path.resolve(app.getPath('userData'), 'preferences.json'),
    'defaults': {
     'main': {
-      'userDataDir': defaultDataDir(app)
+      'userDataDir': defaultDataDir(app),
+      'pandocPath' : defaultPandocExecutable()
     },
     'ui' : {
       'splitState': 'OnlyEditor',
@@ -45,6 +47,12 @@ const preferences = new PanWriterPreferences({
                       'key': 'userDataDir',
                       'type': 'directory',
                       'help': 'PanWriter user directory'
+                  },
+                  {
+                      'label': 'Pandoc executable',
+                      'key': 'pandocPath',
+                      'type': 'file',
+                      'help': 'Path to pandoc executable'
                   }
               ]
           }
